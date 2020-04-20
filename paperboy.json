@@ -1,0 +1,13 @@
+{
+  "equivalencies": [
+    {
+      "name": "Top Stories",
+      "article_sources": [
+        "BBC/top_stories",
+        "CNN/top_stories",
+        "NYT/top_stories",
+        "WAPO/world"
+      ]
+    }
+  ]
+}

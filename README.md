@@ -11,8 +11,24 @@ with the json consisting of the following keys:
 2. `article`: the text of the article
 3. `link`: the link where the article can be downloaded
 
-Payperboy will also require a config file passed in that contains a list of arrays of equivalencies of feeds for comparison.
-E.g. `[BBC/top_stories, NTY/top_stories, CNN/top_stores]` These are the sets of directories it will consider containing
+Payperboy will also require a config file passed in that contains a list of equivalencies of feeds for comparison.
+E.g.  
+```json
+{
+  "equivalencies": [
+    {
+      "name": "Top Stories",
+      "article_sources": [
+        "BBC/top_stories",
+        "CNN/top_stories",
+        "NYT/top_stories",
+        "WAPO/world"
+      ]
+    }
+  ]
+}
+```
+These are the sets of directories it will consider containing
 equivalent type of stories. This is because it doesn't make a lot of sense to compare stories about English Football,
 with Nascar Races.
 

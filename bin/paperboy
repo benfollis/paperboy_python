@@ -2,8 +2,78 @@
 import argparse
 import json
 import pathlib
+import tensorflow_hub as hub
+import tensorflow as tf
+import numpy as np
+module_url = "https://tfhub.dev/google/universal-sentence-encoder/1?tf-hub-format=compressed"
+# Import the Universal Sentence Encoder's TF Hub module
+embed = hub.load(module_url)
+
+arg_parser = argparse.ArgumentParser(description='NLP similarity for articles fetched via paperboy_fetcher')
+arg_parser.add_argument('--config', type=str, default='./paperboy.json', help='the location of the config file')
+arg_parser.add_argument('--input', type=str, default='/tmp/paperboy', help='the directory articles are stored in')
+arg_parser.add_argument('--threshold', default=0.8, type=float, help='the similarity threshold for groups')
+
+
+def gather_articles(cwd, article_sources):
+    """
+    :param equivalency: A list of strings of the form <Provider>/feed which contain
+    the list of directories containing articles we consider equivalent
+    :return: an array consisting of all article entries loaded from files in the
+    equivalent directories
+    """
+    articles = []
+    for source in article_sources:
+        load_path = cwd.joinpath(source)
+        for file_path in load_path.iterdir():
+            if file_path.is_file():
+                with open(file_path, 'r') as file:
+                    article = json.load(file)
+                    articles.append(article)
+    return articles
+
+def compute_similarity_matrix(articles):
+    """
+    The approach for this is roughly stolen from
+    https://stackoverflow.com/questions/8897593/how-to-compute-the-similarity-between-two-text-documents
+    :param articles: the list of articles to compare against
+    :return: an NxN matrix (where N = len(articles)) of the similarity
+    between each article and other articles passed in. The diagonal will all be 1 since it's the article itself
+    """
+    text_only = []
+    for article in articles:
+        text_only.append(article['article'])
+    similarity_input_placeholder = tf.placeholder(tf.string, shape=None)
+    similarity_encodings = embed(similarity_input_placeholder)
+    with tf.Session() as session:
+        session.run(tf.global_variables_initializer())
+        session.run(tf.tables_initializer())
+        similarity_embeddings_ = session.run(similarity_encodings, feed_dict={similarity_input_placeholder: text_only})
+
+    corr = np.inner(similarity_embeddings_, similarity_embeddings_)
+    return corr
 
 if __name__ == '__main__': # which it will:
     args = arg_parser.parse_args()
     args_dict = vars(args)
+    threshold = args_dict['threshold']
+    config_location = args_dict['config']
+    input_path = args_dict['input']
+    with open(config_location, 'r') as config_file:
+        config_data = config_file.read()
+        config = json.loads(config_data)
+    source_dir = pathlib.Path(input_path)
+    equivalencies = config['equivalencies']
+
+    for equivalency in equivalencies:
+        name = equivalency['name']
+        articles = gather_articles(source_dir, article_sources=equivalency['article_sources'])
+        similarity = compute_similarity_matrix(articles)
+        print(similarity)
+
+
+
+
+
+
     
