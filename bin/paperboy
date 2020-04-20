@@ -4,16 +4,22 @@ import json
 import pathlib
 import tensorflow_hub as hub
 import tensorflow as tf
+import random
+from paperboy.algorithm.hac import cluster
 import numpy as np
-module_url = "https://tfhub.dev/google/universal-sentence-encoder/1?tf-hub-format=compressed"
+module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
 # Import the Universal Sentence Encoder's TF Hub module
-embed = hub.load(module_url)
-
+model = hub.load(module_url)
+print ("module %s loaded" % module_url)
 arg_parser = argparse.ArgumentParser(description='NLP similarity for articles fetched via paperboy_fetcher')
 arg_parser.add_argument('--config', type=str, default='./paperboy.json', help='the location of the config file')
-arg_parser.add_argument('--input', type=str, default='/tmp/paperboy', help='the directory articles are stored in')
-arg_parser.add_argument('--threshold', default=0.8, type=float, help='the similarity threshold for groups')
+arg_parser.add_argument('--output', type=str, default='/tmp/paperboy', help='the location to write output files to')
 
+arg_parser.add_argument('--input', type=str, default='/tmp/paperboy', help='the directory articles are stored in')
+arg_parser.add_argument('--threshold', default=0.50, type=float, help='the similarity threshold for groups')
+
+def embed(input):
+    return model(input)
 
 def gather_articles(cwd, article_sources):
     """
@@ -32,10 +38,13 @@ def gather_articles(cwd, article_sources):
                     articles.append(article)
     return articles
 
+
 def compute_similarity_matrix(articles):
     """
     The approach for this is roughly stolen from
     https://stackoverflow.com/questions/8897593/how-to-compute-the-similarity-between-two-text-documents
+    and
+    https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/semantic_similarity_with_tf_hub_universal_encoder.ipynb
     :param articles: the list of articles to compare against
     :return: an NxN matrix (where N = len(articles)) of the similarity
     between each article and other articles passed in. The diagonal will all be 1 since it's the article itself
@@ -43,15 +52,36 @@ def compute_similarity_matrix(articles):
     text_only = []
     for article in articles:
         text_only.append(article['article'])
-    similarity_input_placeholder = tf.placeholder(tf.string, shape=None)
-    similarity_encodings = embed(similarity_input_placeholder)
-    with tf.Session() as session:
-        session.run(tf.global_variables_initializer())
-        session.run(tf.tables_initializer())
-        similarity_embeddings_ = session.run(similarity_encodings, feed_dict={similarity_input_placeholder: text_only})
-
-    corr = np.inner(similarity_embeddings_, similarity_embeddings_)
+    similarity_embeddings = embed(text_only)
+    corr = np.inner(similarity_embeddings, similarity_embeddings)
     return corr
+
+
+def write_cluster_data(output_path, clusters, articles):
+    """
+    Writes out the json blob for each cluster
+    :param name: the base file name we should write the file out as
+    :param clusters: the clusters of similarity- these are arrays of indexes into the articles array
+    :param articles: the articles
+    """
+    data = []
+    for cluster in clusters:
+        cluster_representative = random.choice(cluster)
+        rep_article = articles[cluster_representative]
+        text = rep_article['article']
+        title = rep_article['title']
+        links = []
+        for elem in cluster:
+            links.append(articles[elem]['link'])
+        cluster_data = {
+            'title': title,
+            'text': text,
+            'links': links
+        }
+        data.append(cluster_data)
+    with open(output_path, 'w') as output_file:
+        json.dump(data, output_file)
+
 
 if __name__ == '__main__': # which it will:
     args = arg_parser.parse_args()
@@ -64,12 +94,18 @@ if __name__ == '__main__': # which it will:
         config = json.loads(config_data)
     source_dir = pathlib.Path(input_path)
     equivalencies = config['equivalencies']
+    output_path = args_dict['output']
+    output_dir = pathlib.Path(output_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     for equivalency in equivalencies:
         name = equivalency['name']
         articles = gather_articles(source_dir, article_sources=equivalency['article_sources'])
         similarity = compute_similarity_matrix(articles)
-        print(similarity)
+        clusters = cluster(similarity, threshold)
+        output_file = output_dir.joinpath(name + ".json")
+        write_cluster_data(output_file, clusters, articles)
+
 
 
 

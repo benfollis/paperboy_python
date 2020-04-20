@@ -36,7 +36,7 @@ For each of the equivalency sets it will extract the article text of all article
 [Google Universal Sentence Encoder](https://arxiv.org/abs/1803.11175) similarity analysis of them, and build an
 NxN matrix of the similarities.
 It will then scan that matrix and group together articles that are above a threshold (optionally passed in as the `--threshold` parameter,
-or defaulted to .80). It will then output those groups, as a JSON file containing a list with one entry per group.
+or defaulted to .50). It will then output those groups, as a JSON file containing a list with one entry per group.
 Each group will contain the keys
 1. `title`: randomly selected from one member of the group
 2. `article`: text of the article we selected the title from 
