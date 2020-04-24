@@ -40,7 +40,7 @@ or defaulted to .50). It will then output those groups, as a JSON file containin
 Each group will contain the keys
 1. `title`: randomly selected from one member of the group
 2. `article`: text of the article we selected the title from 
-3. `[links]`: a list of links, one for each member of the group
+3. `[members]`: a list of objects of the form `{ link, title }`, one for each member of the group
 
 It is expected that some other process will make that file visible to the web, and that a frontend exists somewhere that
 can render that file in a user's browser

@@ -44,7 +44,7 @@ def clusters_mergeable(source_cluster, dest_cluster, similarity_matrix, threshol
     for sc_elem in source_cluster:
         for dc_elem in dest_cluster:
             similarity = similarity_matrix[sc_elem][dc_elem]
-            if similarity < threshold:
+            if float(similarity) < threshold:
                 return False
     return True
 

@@ -10,12 +10,12 @@ import numpy as np
 module_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
 # Import the Universal Sentence Encoder's TF Hub module
 model = hub.load(module_url)
-print ("module %s loaded" % module_url)
+print("module %s loaded" % module_url)
 arg_parser = argparse.ArgumentParser(description='NLP similarity for articles fetched via paperboy_fetcher')
 arg_parser.add_argument('--config', type=str, default='./paperboy.json', help='the location of the config file')
 arg_parser.add_argument('--output', type=str, default='/tmp/paperboy', help='the location to write output files to')
 
-arg_parser.add_argument('--input', type=str, default='/tmp/paperboy', help='the directory articles are stored in')
+arg_parser.add_argument('--input', type=str, default='/tmp/paperboy_analyzer', help='the directory articles are stored in')
 arg_parser.add_argument('--threshold', default=0.50, type=float, help='the similarity threshold for groups')
 
 def embed(input):
@@ -105,8 +105,6 @@ if __name__ == '__main__': # which it will:
         clusters = cluster(similarity, threshold)
         output_file = output_dir.joinpath(name + ".json")
         write_cluster_data(output_file, clusters, articles)
-
-
 
 
 
