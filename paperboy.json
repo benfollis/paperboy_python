@@ -1,7 +1,7 @@
 {
   "equivalencies": [
     {
-      "name": "Top Stories",
+      "name": "Top_Stories",
       "article_sources": [
         "BBC/top_stories",
         "CNN/top_stories",
