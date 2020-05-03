@@ -16,7 +16,7 @@ arg_parser.add_argument('--config', type=str, default='./paperboy.json', help='t
 arg_parser.add_argument('--output', type=str, default='/tmp/paperboy', help='the location to write output files to')
 
 arg_parser.add_argument('--input', type=str, default='/tmp/paperboy_analyzer', help='the directory articles are stored in')
-arg_parser.add_argument('--threshold', default=0.50, type=float, help='the similarity threshold for groups')
+arg_parser.add_argument('--threshold', default=0.51, type=float, help='the similarity threshold for groups')
 
 def embed(input):
     return model(input)
@@ -72,7 +72,11 @@ def write_cluster_data(output_path, clusters, articles):
         title = rep_article['title']
         links = []
         for elem in cluster:
-            links.append(articles[elem]['link'])
+            cluster_entry = {
+                'link': articles[elem]['link'],
+                'title': articles[elem]['title']
+            }
+            links.append(cluster_entry)
         cluster_data = {
             'title': title,
             'text': text,
