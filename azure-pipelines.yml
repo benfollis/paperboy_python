@@ -22,9 +22,9 @@ steps:
 - checkout: self
 
 - script: |
-  echo "Checkout everything"
-  git clone https://www.github.com/benfollis/paperboy_fetcher
-  git clone https://www.github.com/benfollis/paperboy_analyzer
+    echo "Checkout everything"
+    git clone https://www.github.com/benfollis/paperboy_fetcher
+    git clone https://www.github.com/benfollis/paperboy_analyzer
   displayName: Checkout All Repos
 
 - script: dir $(Build.SourcesDirectory)
