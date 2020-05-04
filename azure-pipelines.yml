@@ -6,14 +6,21 @@
 trigger:
 - master
 
+resource:
+  repositories:
+  - repository: AnalzyerRepo
+    type: github
+    name: bfollis/paperboy_analyzer
+  - repository: FetcherRepo
+    type: github
+    name: bfollis/paperboy_fetcher
+
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- checkout: self
+- checkout: AnalyzerRepo
+- checkout: FetcherRepo
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- script: dir $(Build.SourcesDirectory)
