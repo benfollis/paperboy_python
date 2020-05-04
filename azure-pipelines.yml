@@ -19,4 +19,20 @@ steps:
     git clone https://www.github.com/benfollis/paperboy_analyzer
   displayName: Checkout All Repos
 
+- script: |
+    cd paperboy_fetcher
+    python3 setup.py install
+    cd ..
+  displayName: Install Fetcher
+
+- script: |
+    cd paperboy_analyzer
+    python3 setup.py install
+    cd ..
+  displayName: Install the analyzer
+
+- script: |
+    mkdir -p fetcher_output
+    paperboy_fetcher --config ./paperboy_analyzer/rss_config.json --output ./fetcher_output
+  displayName: Run the Fetcher
 - script: dir $(Build.SourcesDirectory)
